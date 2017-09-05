@@ -1,20 +1,20 @@
 ---
 layout: post
-title: The two flashlight paradox and taking advantage of Python's GC when doing data stream caching
+title: The two flashlights paradox and taking advantage of Python's GC when doing data stream caching
 ---
 
 > When switched from the language with manual memory management, such as C or C++, to a garbage-collected language, your job as a programmer is made much easier by the fact that your objects are automatically reclaimed when you’re through with them. It seems almost like magic when you first experience it, it can easily lead to the impression that you don’t have to think about memory management, but this isn’t quite true.
 
--- quote from *Effective Java* by **Joshua Bloch**.
+-- quote from *Effective Java* by Joshua Bloch.
 
-Ignoring memory management in Python will probably not that often to lead you to situations where thing went very wrong -- However it still could. For example, passing tons of observer (recall) methods to observable objects, which do not explicitly destroy it(by nulling it out), when it became no longer needed. Overtime, the memory leak can happen.
+Ignoring memory management in Python will probably not that often lead you to situations where thing went very wrong -- However it still could. For example, continously passing observer (callback) methods to observable objects, without explicitly destroying it(by nulling it out), when callback became no longer needed. Overtime, the memory leak can happen.
 
-Keeping memory management in mind will help you gain edges when dealing with "big data" tasks.
+Keeping memory management in mind will help you gain edges when dealing with "bigger data" tasks.
 
 In this post, I am going to show you how to take the advantage of Garbage-Collection (GC) in Python.
 
 ## Stream Data Caching Problem
-Sometimes, when data stream comes, we want to store them and preserve their natural order, for example, we keep them in order of the timestamp the data arrives.
+Sometimes, when data stream comes, we want to store them and preserve their natural order, for example, we keep them in order of the timestamp.
 
 Putting them as data nodes in a LinkedList is the common and natual implementation. 
 
@@ -33,12 +33,12 @@ But since we have a hashmap caching of these nodes, the data nodes discarded by 
 
 Can we do better?
 
-## The Two Flashlight Paradox
-Okay, I confess that I coined the phase *Two Flashlight Paradox*. It was just one scene from Stephen Chow's movie [From Beijing with Love(1994)](https://en.wikipedia.org/wiki/From_Beijing_with_Love).
+## The Two Flashlights Paradox
+Okay, I confess that I coined the phase *Two Flashlights Paradox*. It was just one scene from Stephen Chow's movie [From Beijing with Love(1994)](https://en.wikipedia.org/wiki/From_Beijing_with_Love).
 
-In the movie, the rocket scientist Tat Man-sai invented a special flashlight that never get lit by itself until it senses light bean from another normal flashlight.
+In the movie, the rocket scientist Tat Man-sai invented a special flashlight that never get lit by itself until it senses light beam from another flashlight.
 ![img]({{ site.baseurl }}/public/flashlight0.jpg){: .center-image }*It won't light*
-![img]({{ site.baseurl }}/public/flashlight1.jpg){: .center-image }*Until another flashlight lights*
+![img]({{ site.baseurl }}/public/flashlight1.jpg){: .center-image }*Only until another flashlight lights*
 
 It was a joke and a completely useless invention in the movie. But **Hey** isn't this what we want to solve our streaming data caching problem?
 
@@ -55,7 +55,7 @@ Let's do the following experiment to see how it works,
 
 We will call the demo code below twice, 
 
-In the first call, we feed it a normal Python dict() to do the cache.
+In the first call, we feed it a normal Python dict() to do the caching.
 
 In the second call, we feed it with a Weakref.WeakValueDictionary() to do the caching.
 
@@ -185,7 +185,7 @@ Cleaning the following objects from the method stack.
 (Deleting ExpensiveObject(four))
 
 ```
-From above, we can see the linkedlist is cut short, and discarded data nodes are immediately garbage-collected by Python's GC because the weakref.WeakValueDictionary() does not keep them once the strong reference is gong.
+From above, we can see the linkedlist is cut short, and discarded data nodes are immediately garbage-collected by Python's GC because the weakref.WeakValueDictionary() does not keep them once the strong reference is gone.
 
 This way we do not need to do the cache shrinking manually. And the time complexity for cache shrinking is optimized to O(1).
 
@@ -193,6 +193,6 @@ This way we do not need to do the cache shrinking manually. And the time complex
 ## A concrete toy project example
 
 In the link below, I solved an interesting logger system design problem using both ways above.
-Check it out [here](http://weihan.online/blog/eugenejw.github.io/_site/2017/08/leetcode-359.html), if you are interetst.
+Check it out [here](http://weihan.online/blog/eugenejw.github.io/_site/2017/08/leetcode-359.html).
 
 
