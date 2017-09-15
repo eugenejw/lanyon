@@ -51,7 +51,17 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -.025rem;
 }
 
-
+.logo-b {
+  fill: #939597;
+}
+.logo-u {
+  fill: #939597;
+}
+/* #7D0CE8; }*/
+.logo-g {
+  fill: #7D0CE8;
+}
+/*  #FF0000; } */
 /*
  * Wrapper
  *
