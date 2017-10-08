@@ -3,69 +3,69 @@ layout: post
 title: Bloom Filter -- a probabilistic data structure as alternative to HashSet
 ---
 
-As a software engineer, I trust the HashSet. If the HashSet tells me that "I defintely do not contains this key", I take its words, unless, well my RAM gets bit alterations from "Atmospheric Neutrons" (aka: Cosmic Rays).
+As a software engineer, I trust the HashSet. If the HashSet tells me that "I definitely do not contains this key", I take its words, unless, well my RAM gets bit alterations from "Atmospheric Neutrons" (aka: Cosmic Rays).
 
 As an alternative to hashset, the Bloom Filter is a similar data structure that does the same job, but in a more space-efficient manner. 
 
 ## Motivation -- Malicious Website Blocking Problem
 
-Let's say we use crawlers to scan websites's content to ensure it is not comprimised by malware. When a certain url is believed to be comprised, we add the url to a black list. As the Google Chrome browser does.
+Let's say we use crawlers to scan websites' content to ensure it is not compromised by malware. When a certain url is believed to be comprised, we add the url to a black-list. As the Google Chrome browser does.
 
-![img]({{ site.baseurl }}/public/bloom_filter.jpg){: .center-image }*Chrome browser is using bloom filter to block malicious websites*
+![img]({{ site.baseurl }}/public/bloom_filter.jpg){: .left-image }*Chrome browser is using bloom filter to block malicious websites*
 
-We can implement this blacklist using a hashtable. This table could be located either on client side(i.e. the Chrome browser) or on the server side(i.e. online shorten url service provider). This approach is conceptually easy to understand, simple to implement with lines of code, and with O(1) time complexity for url look-ups. 
+We can implement this blacklist using a hashtable. This table could be located either on the client side(i.e. the Chrome browser) or on the server side(i.e. online shorten url service provider). This approach is conceptually easy to understand, simple to implement with lines of code, and with O(1) time complexity for url look-ups. 
 
 But with the following drawbacks,
 
 * Not memory efficient -- for hashset containing top 1 million alexa domains, the hashset size is roughly 300M in memory. For shorten url provider, like [bitly](https://bitly.com/), the blacklist could take about 2.9GB in memory (according to its blog post).
-* We don't want to expose the raw data to client side -- the blacklist itself is a precious assets, you don't want to expose it to hacker.
+* We don't want to expose the raw data to client side -- the blacklist itself is a treasure trove asset, you don't want to expose it to hacker.
 
-With the Bloom Filter, the 300MB hashtable could be reduced to 1.71MB with 0.001 false positive rate, calculated by [bloom filter calculater](https://hur.st/bloomfilter?n=1000000&p=0.001).
+With the Bloom Filter, the 300MB hashtable could be reduced to 1.71MB with 0.001 false positive rates, calculated by [bloom filter calculator](https://hur.st/bloomfilter?n=1000000&p=0.001).
 
-And because, ubder the hood, the bloom filter is a bitarray with '1's and '0's, it encripted the actual content of the hashtable.
+And because, ubder the hood, the bloom filter is a bitarray with '1's and '0's, it encrypted the actual content of the hashtable.
 
 ## Introducing Bloom Filter
 
-> A Bloom filter is a space-efficient probabilistic data structure, conceived by Burton Howard Bloom in 1970, that is used to test whether an element is a member of a set. False positive matches are possible, but false negatives are not – in other words, a query returns either "possibly in set" or "definitely not in set". Elements can be added to the set, but not removed (though this can be addressed with a "counting" filter); the more elements that are added to the set, the larger the probability of false positives.
+> A Bloom filter is a space-efficient probabilistic data structure, conceived by Burton Howard Bloom in 1970, that is used to test whether an element is a member of a set. False positive matches are possible, but false negatives are not – in other words, a query returns either "possibly in the set" or "definitely not in the set". Elements can be added to the set, but not removed (though this can be addressed with a "counting" filter); the more elements that are added to the set, the larger the probability of false positives.
 
 Quote from [Bloom Filter, Wikipedia](https://en.wikipedia.org/wiki/Bloom_filter)
 
 Bloom Filter is a bit array of N bits, where N is the size of the bit array. It has another parameter which is the number of hash functions, k. These hash functions are used to set bits in the bit array. When inserting an element x into the filter, the bits in the k indices h1(x), h2(x), ..., hk(x) are set, where the bit positions are determined by the hash functions. Note that as we increase the number of hash functions, the false positive rate of this probability goes to zero. However, it takes more time to insert and lookup as well as the bloom filter fills up more quickly.
 
-In order to to membership existence in the Bloom Filter, we need to chekck if all of the bits are set; very similar to how we insert item into a bloom filter. If all of the bits are set, then it means that that item is probably in the bloom filter, where if anot all of the bits are set, then it means that the item is not in the Bloom Filter.
+In order to check the membership existence in the Bloom Filter, we need to check if all of the bits are set; very similar to how we insert item into a bloom filter. If all of the bits are set, then it means that that item is probably in the bloom filter, where if not all of the bits are set, then it means that the item is not in the Bloom Filter.
 
 Check this link for detailed [tutorial for bloom filter](https://llimllib.github.io/bloomfilter-tutorial/)
 
 ## An example bloom filter containing 1-million urls
 
-For a bloom filter containing 1 million urls, with 0.001 false positive rate.
+For a bloom filter containing 1 million urls, with 0.001 false positive rates.
 
-* If the bloom filter tells you "it is definitely NOT in the bloom filter", it is 100% ensured that it is not in the bloom filter (because of the 0 false nagative rate guarantee).
+* If the bloom filter tells you "it is definitely NOT in the bloom filter", it is 100% ensured that it is not in the bloom filter (because of the 0 false negative rate guarantee).
 * If the bloom filter tells you "It might be in the bloom filter", there is a false positive rate of 0.001.
 
-## What is positives matter?
+## What are the false positives?
 
 A false positive error, or in short a false positive, commonly called a "false alarm", is a result that indicates a given condition exists, when it does not. 
 
-For example, if the bloom filter says the "www.facebook.com" is NOT in the blacklist (abvious, it should not), you can give this url a greenlight to let it pass.
+For example, if the bloom filter says the "www.facebook.com" is NOT in the blacklist (obvious, it should not), you can give this url a greenlight to let it pass.
 If the bloom filter says the "www.youtube.com" might be in the blacklist, you take this with **a grain of salt** -- bearing in mind that there is 0.1% of false positive. So you need send the url "www.youtube.com" to further examinations, for example, a DB check, or even some more expensive realtime malware scan. 
 
-If your further check confirms thata the "www.youtube.com" is **NOT** a malicious website, it is a "false positive" or "false alarm". If, somehow, "www.youtube.com" is marked as a malicous website in your DB. It is a "true positive".
+If your further check confirms that the "www.youtube.com" is **NOT** a malicious website, it is a "false positive" or "false alarm". If, somehow, "www.youtube.com" is marked as a malicious website in your DB. It is a "true positive".
 
-## Does false positive matters? 
+## Does false positive matter? 
 
 In this case, the false positive is acceptable, as long as we control the rate to be low by allocating more space to the bloom filter.
 
 Indeed, to handle the occasional false positives, we did spend more time and resource to do the checking in the backend. 
 
-It is a trade-off decision to make. More importantly, not a single malicious website gets **slip out of our hands**, because of the "no false negative" guarantee.
+It is a trade-off decision to make. More importantly, not a single malicious website gets to **slip out of our hands**, because of the "no false negative" guarantee.
 
 ## Implementing the bloom filter above
 
-Without concerning the thread safe, entry-removing needs, or scalability needs, the bloom filter could be achieved in a few lines of code.
+Without concerning the thread-safe, entry-removing needs, or scalability needs, the bloom filter could be achieved in a few lines of code.
 
-Below is the python 2.7 implementation of a bloom filter containing 1 million url, with false positive rate set to 0.001.
-It uses the mmh3 -- [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash) hash function, and by feeding the mmh3 with different seeds, they can be treated as different hashfunctions.
+Below is the python 2.7 implementation of a bloom filter containing 1 million url, with the false positive rate set to 0.001.
+It uses the mmh3 -- [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash) hash function, and by feeding the mmh3 with different seeds, they can be treated as different hash functions.
  
 ```python
 import mmh3
@@ -184,18 +184,18 @@ From the output above we can observe the 3 facts,
 
 * There are 991 false positive cases reported. 
 * The bloom filter is of sze 86MB, while the hashset with the same contents cost 335MB in RAM.
-* The bloom filter cost more time to do the lookup -- because hashset uses only one hashfunction; while bloom filter utilizes multiple hash functions.
+* The bloom filter cost more time to do the lookup -- because hashset uses only one hash function; while bloom filter utilizes multiple hash functions.
 
 
-## full fledged implementations in different languages,
+## full-ledged implementations in different languages,
 
 
-In production, for different reasons, you might want to write your own bloom filter implementation to fully fit your needs, for example, speed requirent, distributed deployment, or removal requirements. 
+In production, for different reasons, you might want to write your own bloom filter implementation to fully fit your needs, for example, speed requirement, distributed deployment, or removal requirements. 
 
 There are open source implementations for every language, but the following implementations are pretty good in my experience:
 
 * [Python scalable implementation](https://github.com/jaybaird/python-bloomfilter)
-* [Java thread safe implementation](https://github.com/google/guava/blob/master/guava/src/com/google/common/hash/BloomFilter.java)
+* [Java thread-safe implementation](https://github.com/google/guava/blob/master/guava/src/com/google/common/hash/BloomFilter.java)
 * [Python scalable & removal-supported implementation](https://github.com/bitly/dablooms)
 
 Note: you can re-write the python code using pypy, if speed is crucial in your application.
